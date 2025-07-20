@@ -1,13 +1,21 @@
-import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { Request } from 'express';
+import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
+import { GetUser } from './decorators/get-user.decorator';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private prisma: PrismaService,
+  ) {}
 
   @Post('signup')
   async signup(
     @Body() body: { email: string; password: string },
+    @Req() req: Request,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const userExists = await this.authService.getUserByEmail(body.email);
 
@@ -17,12 +25,22 @@ export class AuthController {
 
     const user = await this.authService.createUser(body.email, hashedPassword);
 
-    return this.authService.generateTokens(user.id, user.email);
+    const tokens = await this.authService.generateTokens(user.id, user.email);
+
+    await this.authService.createSession(
+      user.id,
+      tokens.refreshToken,
+      req.ip,
+      req.headers['user-agent'],
+    );
+
+    return tokens;
   }
 
   @Post('login')
   async login(
     @Body() body: { email: string; password: string },
+    @Req() req: Request,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await this.authService.getUserByEmail(body.email);
 
@@ -32,6 +50,52 @@ export class AuthController {
 
     if (!passwordMatch) throw new UnauthorizedException('Invalid credentials');
 
-    return this.authService.generateTokens(user.id, user.email);
+    const tokens = await this.authService.generateTokens(user.id, user.email);
+
+    await this.authService.createSession(
+      user.id,
+      tokens.refreshToken,
+      req.ip,
+      req.headers['user-agent'],
+    );
+
+    return tokens;
+  }
+
+  @UseGuards(JwtRefreshGuard)
+  @Post('refresh')
+  async refresh(
+    @GetUser() user: any,
+    @Req() req: Request,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    const refreshToken = req.headers['authorization']?.replace('Bearer ', '');
+    if (!refreshToken) throw new UnauthorizedException();
+
+    const session = await this.prisma.session.findFirst({
+      where: {
+        userId: user.sub,
+        refreshToken,
+      },
+    });
+
+    if (!session) throw new UnauthorizedException('Invalid session');
+    if (session.expiresAt < new Date()) {
+      throw new UnauthorizedException('Session expired');
+    }
+
+    await this.prisma.session.delete({
+      where: { id: session.id },
+    });
+
+    const tokens = await this.authService.generateTokens(user.sub, user.email);
+
+    await this.authService.createSession(
+      user.sub,
+      tokens.refreshToken,
+      req.ip,
+      req.headers['user-agent'],
+    );
+
+    return tokens;
   }
 }
