@@ -7,7 +7,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UserService } from 'src/user/user.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
-@UseGuards(JwtAuthGuard)
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -55,6 +54,8 @@ export class AuthController {
     if (!passwordMatch) throw new UnauthorizedException('Invalid credentials');
 
     const tokens = await this.authService.generateTokens(user.id, user.email);
+
+    await this.authService.deleteSessionsForUser(user.id);
 
     await this.authService.createSession(
       user.id,

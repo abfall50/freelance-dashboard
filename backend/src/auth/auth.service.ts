@@ -58,4 +58,10 @@ export class AuthService {
       },
     });
   }
+
+  async deleteSessionsForUser(userId: string) {
+    await this.prisma.session.deleteMany({
+      where: { userId },
+    });
+  }
 }
