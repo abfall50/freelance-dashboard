@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
+import { UuidParamDto } from 'src/common/dto/uuid-param.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { JwtPayload } from 'src/common/types/jwt-payload.type';
 import { ClientService } from './client.service';
@@ -32,8 +33,8 @@ export class ClientController {
   }
 
   @Get(':id')
-  async findOne(@GetUser() user: JwtPayload, @Param('id') clientId: string) {
-    const client = await this.clientService.findOne(user.userId, clientId);
+  async findOne(@GetUser() user: JwtPayload, @Param() params: UuidParamDto) {
+    const client = await this.clientService.findOne(user.userId, params.id);
     if (!client) {
       throw new NotFoundException('Client not found');
     }
@@ -44,10 +45,10 @@ export class ClientController {
   @Patch('id')
   async update(
     @GetUser() user: JwtPayload,
-    @Param('id') clientId: string,
+    @Param() params: UuidParamDto,
     @Body() upadteDto: UpdateClientDto,
   ) {
-    const client = await this.clientService.update(user.userId, clientId, upadteDto);
+    const client = await this.clientService.update(user.userId, params.id, upadteDto);
     if (!client) {
       throw new NotFoundException('Client not found');
     }
@@ -56,8 +57,8 @@ export class ClientController {
   }
 
   @Delete('id')
-  async remove(@GetUser() user: JwtPayload, @Param('id') clientId: string) {
-    const deleted = await this.clientService.delete(user.userId, clientId);
+  async remove(@GetUser() user: JwtPayload, @Param() params: UuidParamDto) {
+    const deleted = await this.clientService.delete(user.userId, params.id);
     if (!deleted) {
       throw new NotFoundException('Client not found');
     }

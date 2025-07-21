@@ -93,7 +93,7 @@ describe('MissionController', () => {
 
       service.findOne = jest.fn().mockResolvedValueOnce(mockMission);
 
-      const result = await controller.findOne(user, missionId);
+      const result = await controller.findOne(user, { id: missionId });
 
       expect(service.findOne).toHaveBeenCalledWith(user.userId, missionId);
       expect(result).toEqual(mockMission);
@@ -106,7 +106,9 @@ describe('MissionController', () => {
 
       service.findOne = jest.fn().mockResolvedValueOnce(null);
 
-      await expect(controller.findOne(user, missionId)).rejects.toThrow('Mission not found');
+      await expect(controller.findOne(user, { id: missionId })).rejects.toThrow(
+        'Mission not found',
+      );
     });
   });
 
@@ -131,7 +133,7 @@ describe('MissionController', () => {
 
       service.update = jest.fn().mockResolvedValueOnce(updatedMission);
 
-      const result = await controller.update(user, missionId, updateDto);
+      const result = await controller.update(user, { id: missionId }, updateDto);
 
       expect(service.update).toHaveBeenCalledWith(user.userId, missionId, updateDto);
       expect(result).toEqual(updatedMission);
@@ -145,7 +147,7 @@ describe('MissionController', () => {
 
       service.update = jest.fn().mockResolvedValueOnce(null);
 
-      await expect(controller.update(user, missionId, updateDto)).rejects.toThrow(
+      await expect(controller.update(user, { id: missionId }, updateDto)).rejects.toThrow(
         'Mission not found',
       );
     });
@@ -161,7 +163,7 @@ describe('MissionController', () => {
 
       service.delete = jest.fn().mockResolvedValueOnce(deleted);
 
-      const result = await controller.remove(user, missionId);
+      const result = await controller.remove(user, { id: missionId });
 
       expect(service.delete).toHaveBeenCalledWith(user.userId, missionId);
       expect(result).toEqual(deleted);
@@ -177,7 +179,7 @@ describe('MissionController', () => {
 
       service.delete = jest.fn().mockResolvedValueOnce(null);
 
-      await expect(controller.remove(user, missionId)).rejects.toThrow('Mission not found');
+      await expect(controller.remove(user, { id: missionId })).rejects.toThrow('Mission not found');
     });
   });
 });

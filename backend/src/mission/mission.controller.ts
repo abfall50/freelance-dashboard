@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
+import { UuidParamDto } from 'src/common/dto/uuid-param.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { JwtPayload } from 'src/common/types/jwt-payload.type';
 import { CreateMissionDto } from './dto/create-mission.dto';
@@ -32,8 +33,8 @@ export class MissionController {
   }
 
   @Get(':id')
-  async findOne(@GetUser() user: JwtPayload, @Param('id') missionId: string) {
-    const mission = await this.missionService.findOne(user.userId, missionId);
+  async findOne(@GetUser() user: JwtPayload, @Param() params: UuidParamDto) {
+    const mission = await this.missionService.findOne(user.userId, params.id);
     if (!mission) {
       throw new NotFoundException('Mission not found');
     }
@@ -44,10 +45,10 @@ export class MissionController {
   @Patch(':id')
   async update(
     @GetUser() user: JwtPayload,
-    @Param('id') missionId: string,
+    @Param() params: UuidParamDto,
     @Body() updateDto: UpdateMissionDto,
   ) {
-    const mission = await this.missionService.update(user.userId, missionId, updateDto);
+    const mission = await this.missionService.update(user.userId, params.id, updateDto);
     if (!mission) {
       throw new NotFoundException('Mission not found');
     }
@@ -56,8 +57,8 @@ export class MissionController {
   }
 
   @Delete(':id')
-  async remove(@GetUser() user: JwtPayload, @Param('id') missionId: string) {
-    const mission = await this.missionService.delete(user.userId, missionId);
+  async remove(@GetUser() user: JwtPayload, @Param() params: UuidParamDto) {
+    const mission = await this.missionService.delete(user.userId, params.id);
     if (!mission) {
       throw new NotFoundException('Mission not found');
     }

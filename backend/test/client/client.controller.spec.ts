@@ -77,7 +77,7 @@ describe('ClientController', () => {
 
       service.findOne = jest.fn().mockResolvedValueOnce(mockClient);
 
-      const result = await controller.findOne(mockUser, clientId);
+      const result = await controller.findOne(mockUser, { id: clientId });
 
       expect(service.findOne).toHaveBeenCalledWith(userId, clientId);
       expect(result).toEqual(mockClient);
@@ -91,7 +91,9 @@ describe('ClientController', () => {
 
       service.findOne = jest.fn().mockResolvedValueOnce(null);
 
-      await expect(controller.findOne(mockUser, clientId)).rejects.toThrow('Client not found');
+      await expect(controller.findOne(mockUser, { id: clientId })).rejects.toThrow(
+        'Client not found',
+      );
     });
   });
 
@@ -117,7 +119,7 @@ describe('ClientController', () => {
 
       service.update = jest.fn().mockResolvedValueOnce(updatedClient);
 
-      const result = await controller.update(mockUser, clientId, updateDto);
+      const result = await controller.update(mockUser, { id: clientId }, updateDto);
 
       expect(service.update).toHaveBeenCalledWith(userId, clientId, updateDto);
       expect(result).toEqual(updatedClient);
@@ -132,7 +134,7 @@ describe('ClientController', () => {
 
       service.update = jest.fn().mockResolvedValueOnce(null);
 
-      await expect(controller.update(mockUser, clientId, updateDto)).rejects.toThrow(
+      await expect(controller.update(mockUser, { id: clientId }, updateDto)).rejects.toThrow(
         'Client not found',
       );
     });
@@ -147,7 +149,7 @@ describe('ClientController', () => {
 
       service.delete = jest.fn().mockResolvedValueOnce({ id: clientId });
 
-      const result = await controller.remove(mockUser, clientId);
+      const result = await controller.remove(mockUser, { id: clientId });
 
       expect(service.delete).toHaveBeenCalledWith(userId, clientId);
       expect(result).toEqual({ id: clientId });
@@ -161,7 +163,9 @@ describe('ClientController', () => {
 
       service.delete = jest.fn().mockResolvedValueOnce(null);
 
-      await expect(controller.remove(mockUser, clientId)).rejects.toThrow('Client not found');
+      await expect(controller.remove(mockUser, { id: clientId })).rejects.toThrow(
+        'Client not found',
+      );
     });
   });
 });
