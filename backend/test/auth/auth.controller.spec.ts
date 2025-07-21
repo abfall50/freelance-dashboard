@@ -5,7 +5,8 @@ import * as bcrypt from 'bcrypt';
 import { AuthController } from 'src/auth/auth.controller';
 import { AuthService } from 'src/auth/auth.service';
 import { UnauthorizedException } from '@nestjs/common';
-import { createFakeRequest } from '../utils/fake-request';
+import { createFakeRequest } from '../../src/common/utils/fake-request';
+import { UserService } from 'src/user/user.service';
 
 describe('AuthService', () => {
   let controller: AuthController;
@@ -18,6 +19,7 @@ describe('AuthService', () => {
       providers: [
         PrismaService,
         AuthService,
+        UserService,
         { provide: JwtService, useValue: { signAsync: jest.fn().mockResolvedValue('mockToken') } },
       ],
     }).compile();
