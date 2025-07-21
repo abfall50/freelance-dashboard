@@ -4,11 +4,15 @@ import { Request } from 'express';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { GetUser } from './decorators/get-user.decorator';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UserService } from 'src/user/user.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('auth')
 export class AuthController {
   constructor(
     private authService: AuthService,
+    private userService: UserService,
     private prisma: PrismaService,
   ) {}
 
@@ -17,7 +21,7 @@ export class AuthController {
     @Body() body: { email: string; password: string },
     @Req() req: Request,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const userExists = await this.authService.getUserByEmail(body.email);
+    const userExists = await this.userService.findUserByEmail(body.email);
 
     if (userExists) throw new Error('Email already taken');
 
@@ -42,7 +46,7 @@ export class AuthController {
     @Body() body: { email: string; password: string },
     @Req() req: Request,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const user = await this.authService.getUserByEmail(body.email);
+    const user = await this.userService.findUserByEmail(body.email);
 
     if (!user) throw new UnauthorizedException('Invalid credentials');
 

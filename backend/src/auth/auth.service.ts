@@ -43,16 +43,6 @@ export class AuthService {
     });
   }
 
-  async getUserByEmail(email: string) {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        email: email,
-      },
-    });
-
-    return user;
-  }
-
   async createSession(userId: string, refreshToken: string, ip?: string, userAgent?: string) {
     const expiresAt = add(new Date(), {
       days: parseInt(process.env.JWT_REFRESH_EXPIRES_IN || '7d'),

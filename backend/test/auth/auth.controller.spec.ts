@@ -11,7 +11,6 @@ describe('AuthService', () => {
   let controller: AuthController;
   let service: AuthService;
   let prisma: PrismaService;
-  let jwt: JwtService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -26,7 +25,6 @@ describe('AuthService', () => {
     controller = module.get<AuthController>(AuthController);
     service = module.get<AuthService>(AuthService);
     prisma = module.get<PrismaService>(PrismaService);
-    jwt = module.get<JwtService>(JwtService);
   });
 
   it('should register a new user and return tokens', async () => {
@@ -166,6 +164,10 @@ describe('AuthService', () => {
         userId: mockUser.sub,
         refreshToken: mockRefreshToken,
       },
+    });
+
+    expect(prisma.session.delete).toHaveBeenCalledWith({
+      where: { id: mockSession.id },
     });
 
     expect(service.generateTokens).toHaveBeenCalledWith(mockUser.sub, mockUser.email);
