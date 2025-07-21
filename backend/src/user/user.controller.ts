@@ -9,11 +9,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from 'src/auth/auth.service';
-import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { GetUser } from 'src/common/decorators/get-user.decorator';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { JwtPayload } from 'src/common/types/jwt-payload.type';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
 
-@UseGuards()
+@UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UserController {
   constructor(
@@ -22,7 +24,7 @@ export class UserController {
   ) {}
 
   @Get('me')
-  async getMe(@GetUser() user: { userId: string }) {
+  async getMe(@GetUser() user: JwtPayload) {
     const foundUser = await this.userService.findUserById(user.userId);
 
     if (!foundUser) {
@@ -33,7 +35,7 @@ export class UserController {
   }
 
   @Patch('me')
-  async updateUser(@GetUser() user: { userId: string }, @Body() dto: UpdateUserDto) {
+  async updateUser(@GetUser() user: JwtPayload, @Body() dto: UpdateUserDto) {
     const existingEmail = await this.userService.findUserByEmail(dto.email);
 
     if (dto.email && existingEmail && existingEmail.id !== user.userId) {
@@ -53,7 +55,7 @@ export class UserController {
   }
 
   @Delete('me')
-  async deleteUser(@GetUser() user: { userId: string }) {
+  async deleteUser(@GetUser() user: JwtPayload) {
     const existingUser = await this.userService.findUserById(user.userId);
 
     if (!existingUser) {

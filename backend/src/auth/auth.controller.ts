@@ -1,11 +1,11 @@
 import { Body, Controller, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Request } from 'express';
-import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
-import { GetUser } from './decorators/get-user.decorator';
+import { JwtRefreshGuard } from '../common/guards/jwt-refresh.guard';
+import { GetUser } from '../common/decorators/get-user.decorator';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserService } from 'src/user/user.service';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @UseGuards(JwtAuthGuard)
 @Controller('auth')

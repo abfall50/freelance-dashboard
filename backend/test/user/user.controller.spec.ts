@@ -2,6 +2,7 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from 'src/auth/auth.service';
+import { createFakeJwtPayload } from 'src/common/utils/fake-user';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserController } from 'src/user/user.controller';
 import { UserService } from 'src/user/user.service';
@@ -39,7 +40,7 @@ describe('AuthService', () => {
     // Simule la réponse de Prisma
     prisma.user.findUnique = jest.fn().mockResolvedValueOnce(mockUser);
 
-    const result = await controller.getMe({ userId });
+    const result = await controller.getMe(createFakeJwtPayload({ userId }));
 
     expect(result).toMatchObject({
       id: userId,
@@ -57,7 +58,9 @@ describe('AuthService', () => {
   it('should throw NotFoundException if user does not exist', async () => {
     prisma.user.findUnique = jest.fn().mockResolvedValue(null);
 
-    await expect(controller.getMe({ userId: 'missing-id' })).rejects.toThrow(NotFoundException);
+    await expect(controller.getMe(createFakeJwtPayload({ userId: 'missing-id' }))).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('should update email only', async () => {
@@ -73,7 +76,7 @@ describe('AuthService', () => {
     prisma.user.findUnique = jest.fn().mockResolvedValue(null);
     prisma.user.update = jest.fn().mockResolvedValue(updatedUser);
 
-    const result = await controller.updateUser({ userId }, updateDto);
+    const result = await controller.updateUser(createFakeJwtPayload({ userId }), updateDto);
 
     expect(result).toEqual(updatedUser);
     expect(prisma.user.update).toHaveBeenCalledWith({
@@ -103,7 +106,7 @@ describe('AuthService', () => {
 
     prisma.user.update = jest.fn().mockResolvedValue(updatedUser);
 
-    const result = await controller.updateUser({ userId }, updateDto);
+    const result = await controller.updateUser(createFakeJwtPayload({ userId }), updateDto);
 
     expect(result).toEqual(updatedUser);
     expect(authService.hashPassword).toHaveBeenCalledWith(updateDto.password);
@@ -121,9 +124,9 @@ describe('AuthService', () => {
 
     const updateDto = { email: 'taken@example.com' };
 
-    await expect(controller.updateUser({ userId: 'user-id' }, updateDto)).rejects.toThrow(
-      ConflictException,
-    );
+    await expect(
+      controller.updateUser(createFakeJwtPayload({ userId: 'user-id' }), updateDto),
+    ).rejects.toThrow(ConflictException);
   });
 
   it('should delete user if exists', async () => {
@@ -131,7 +134,7 @@ describe('AuthService', () => {
     prisma.user.findUnique = jest.fn().mockResolvedValue({ id: userId });
     prisma.user.delete = jest.fn().mockResolvedValue({ id: userId });
 
-    const result = await controller.deleteUser({ userId });
+    const result = await controller.deleteUser(createFakeJwtPayload({ userId }));
 
     expect(result).toEqual({ message: 'User deleted' });
     expect(prisma.user.delete).toHaveBeenCalledWith({
@@ -142,6 +145,8 @@ describe('AuthService', () => {
   it('should throw NotFoundException if user does not exist', async () => {
     prisma.user.findUnique = jest.fn().mockResolvedValue(null);
 
-    await expect(controller.deleteUser({ userId: 'not-found' })).rejects.toThrow(NotFoundException);
+    await expect(
+      controller.deleteUser(createFakeJwtPayload({ userId: 'not-found' })),
+    ).rejects.toThrow(NotFoundException);
   });
 });
